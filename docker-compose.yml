@@ -1,0 +1,25 @@
+version: '2'
+services:
+  mysql:
+    image: mariadb
+    container_name: mysql
+    hostname: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: MYSQL_DBPASS
+
+  keystone:
+    depends_on:
+      - mysql
+    image: openstack-keystone
+    links:
+      - mysql
+    ports:
+      - "35357:35357"
+      - "5000:5000"
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: MYSQL_DBPASS
+      OS_TENANT_NAME: admin
+      OS_USERNAME: admin
+      OS_PASSWORD: password
