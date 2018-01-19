@@ -1,7 +1,10 @@
+
+KEYSTONE_BRANCH=mitaka-eol
+
 build:
-	docker build -t openstack-keystone .
+	docker build --build-arg KEYSTONE_BRANCH=$(KEYSTONE_BRANCH) -t openstack-keystone .
 run:
-	docker run -t -i -d --hostname keystone -e ADMIN_PASSWORD=password --name keystone openstack-keystone
+	docker run -t -i -d --rm --hostname keystone -e ADMIN_PASSWORD=password --name keystone openstack-keystone
 clean:
 	docker rm -f keystone
 exec:

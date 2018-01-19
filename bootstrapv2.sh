@@ -52,27 +52,17 @@ sleep 5 # wait for start
 export OS_TOKEN OS_URL OS_IDENTITY_API_VERSION
 
 # Initialize account
-openstack service create  --name keystone identity
-openstack endpoint create --region RegionOne identity public http://${HOSTNAME}:5000/v3
-openstack endpoint create --region RegionOne identity internal http://${HOSTNAME}:5000/v3
-openstack endpoint create --region RegionOne identity admin http://${HOSTNAME}:5000/v3
-openstack domain create --description "Default Domain" default
-openstack project create --domain default  --description "Admin Project" admin
-openstack user create --domain default --password $ADMIN_PASSWORD admin
-openstack role create admin
-openstack role add --project admin --user admin admin
-
 # Alternate method
-#keystone-manage bootstrap \
-#--bootstrap-username admin \
-#--bootstrap-password $ADMIN_PASSWORD \
-#--bootstrap-project-name admin \
-#--bootstrap-role-name admin \
-#--bootstrap-service-name identity \
-#--bootstrap-admin-url http://${HOSTNAME}:35357/v3 \
-#--bootstrap-public-url http://${HOSTNAME}:5000/v3 \
-#--bootstrap-internal-url http://${HOSTNAME}:5000/v3 \
-#--bootstrap-region-id RegionOne
+keystone-manage bootstrap \
+	--bootstrap-username admin \
+	--bootstrap-password $ADMIN_PASSWORD \
+	--bootstrap-project-name admin \
+	--bootstrap-role-name admin \
+	--bootstrap-service-name identity \
+	--bootstrap-admin-url http://${HOSTNAME}:35357/v3 \
+	--bootstrap-public-url http://${HOSTNAME}:5000/v3 \
+	--bootstrap-internal-url http://${HOSTNAME}:5000/v3 \
+	--bootstrap-region-id RegionOne
 
 
 unset OS_TOKEN OS_URL

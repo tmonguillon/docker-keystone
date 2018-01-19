@@ -32,14 +32,16 @@ RUN apk add --no-cache --virtual build-deps \
     mariadb-dev \
     && git clone --branch $KEYSTONE_BRANCH --depth=1 https://github.com/openstack/requirements \
     && git clone --branch $KEYSTONE_BRANCH --depth=1 https://github.com/openstack/keystone \
-    && git clone --branch $KEYSTONE_BRANCH --depth=1 https://github.com/openstack/python-keystoneclient \
+#    && git clone --branch $KEYSTONE_BRANCH --depth=1 https://github.com/openstack/python-keystoneclient \
     && git clone --branch $KEYSTONE_BRANCH --depth=1 https://github.com/openstack/python-openstackclient \
+    && pip install ./requirements \
     && pip install ./keystone -c ./requirements/upper-constraints.txt \
-    && pip install ./python-keystoneclient \
-    && pip install ./python-openstackclient \
-    && pip install uwsgi MySQL-python \
+#    && pip install ./python-keystoneclient \
+    && pip install ./python-openstackclient -c ./requirements/global-requirements.txt \
+    && pip install uwsgi MySQL-python pymysql pymysql_sa \
     && cp -r ./keystone/etc /etc/keystone \
-    && rm -rf /opt/* 
+    && rm -rf /root/.cache
+#    && rm -rf /opt/* 
 #    && apk del build-deps
 
 
@@ -48,7 +50,8 @@ COPY keystone.sql /root/keystone.sql
 
 # Add bootstrap script and make it executable
 COPY bootstrap.sh /etc/bootstrap.sh
-RUN chown root:root /etc/bootstrap.sh && chmod a+x /etc/bootstrap.sh
+COPY bootstrapv2.sh /etc/bootstrapv2.sh
+RUN chown root:root /etc/bootstrap*.sh && chmod a+x /etc/bootstrap*.sh
 
 #ENTRYPOINT ["/etc/bootstrap.sh"]
 #CMD ["/etc/bootstrap.sh"]
