@@ -11,7 +11,7 @@ services:
   keystone:
     depends_on:
       - mysql
-    image: openstack-keystone
+    image: openstack-keystone:master
     hostname: keystone
     links:
       - mysql

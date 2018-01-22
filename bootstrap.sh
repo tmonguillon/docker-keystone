@@ -1,17 +1,6 @@
 #!/bin/bash
 set -x
 
-
-
-#export OS_PROJECT_DOMAIN_NAME=default
-#export OS_USER_DOMAIN_NAME=default
-#export OS_PROJECT_NAME=admin
-#export OS_USERNAME=admin
-#export OS_PASSWORD=ADMIN_PASS
-#export OS_AUTH_URL=http://controller:35357/v3
-#export OS_IDENTITY_API_VERSION=3
-#export OS_IMAGE_API_VERSION=2
-
 # Init the arguments
 ADMIN_TOKEN=${ADMIN_TOKEN:-294a4c8a8a475f9b9836}
 ADMIN_TENANT_NAME=${ADMIN_TENANT_NAME:-admin}
@@ -45,35 +34,23 @@ keystone-manage fernet_setup --keystone-user root --keystone-group root
 mv /etc/keystone/default_catalog.templates /etc/keystone/default_catalog
 
 # start keystone service 
-uwsgi --http 0.0.0.0:35357 --wsgi-file $(which keystone-wsgi-admin) &
-# uwsgi --http 0.0.0.0:5000 --wsgi-file $(which keystone-wsgi-public) &
-sleep 5 # wait for start
+#uwsgi --http 0.0.0.0:35357 --wsgi-file $(which keystone-wsgi-admin) &
+#uwsgi --http 0.0.0.0:5000 --wsgi-file $(which keystone-wsgi-public) &
+#sleep 5 # wait for start
 
 export OS_TOKEN OS_URL OS_IDENTITY_API_VERSION
 
 # Initialize account
-openstack service create  --name keystone identity
-openstack endpoint create --region RegionOne identity public http://${HOSTNAME}:5000/v3
-openstack endpoint create --region RegionOne identity internal http://${HOSTNAME}:5000/v3
-openstack endpoint create --region RegionOne identity admin http://${HOSTNAME}:5000/v3
-openstack domain create --description "Default Domain" default
-openstack project create --domain default  --description "Admin Project" admin
-openstack user create --domain default --password $ADMIN_PASSWORD admin
-openstack role create admin
-openstack role add --project admin --user admin admin
-
-# Alternate method
-#keystone-manage bootstrap \
-#--bootstrap-username admin \
-#--bootstrap-password $ADMIN_PASSWORD \
-#--bootstrap-project-name admin \
-#--bootstrap-role-name admin \
-#--bootstrap-service-name identity \
-#--bootstrap-admin-url http://${HOSTNAME}:35357/v3 \
-#--bootstrap-public-url http://${HOSTNAME}:5000/v3 \
-#--bootstrap-internal-url http://${HOSTNAME}:5000/v3 \
-#--bootstrap-region-id RegionOne
-
+keystone-manage bootstrap \
+				--bootstrap-username ${ADMIN_USER_NAME} \
+				--bootstrap-password ${ADMIN_PASSWORD} \
+				--bootstrap-project-name ${ADMIN_TENANT_NAME} \
+				--bootstrap-role-name admin \
+				--bootstrap-service-name keystone \
+				--bootstrap-region-id RegionOne \
+				--bootstrap-admin-url http://${HOSTNAME}:35357 \
+				--bootstrap-public-url http://${HOSTNAME}:5000 \
+				--bootstrap-internal-url http://${HOSTNAME}:5000
 
 unset OS_TOKEN OS_URL
 
@@ -81,10 +58,10 @@ unset OS_TOKEN OS_URL
 cat >~/openrc <<EOF
 export OS_PROJECT_DOMAIN_NAME=default
 export OS_USER_DOMAIN_NAME=default
-export OS_PROJECT_NAME=admin
-export OS_USERNAME=admin
+export OS_PROJECT_NAME=${ADMIN_TENANT_NAME}
+export OS_USERNAME=${ADMIN_USER_NAME}
 export OS_PASSWORD=${ADMIN_PASSWORD}
-export OS_AUTH_URL=http://${HOSTNAME}:35357/v3
+export OS_AUTH_URL=http://${HOSTNAME}:35357
 export OS_IDENTITY_API_VERSION=3
 export OS_IMAGE_API_VERSION=2
 EOF
@@ -92,8 +69,8 @@ EOF
 cat ~/openrc
 
 # reboot services
-pkill uwsgi
-sleep 5
+#pkill uwsgi
+#sleep 5
 uwsgi --http 0.0.0.0:5000 --wsgi-file $(which keystone-wsgi-public) &
 sleep 5
 uwsgi --http 0.0.0.0:35357 --wsgi-file $(which keystone-wsgi-admin)
