@@ -19,10 +19,15 @@ if env | grep -qi MYSQL_ROOT_PASSWORD && test -e $SQL_SCRIPT; then
     MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-$MYSQL_ENV_MYSQL_ROOT_PASSWORD}
     MYSQL_HOST=${MYSQL_HOST:-mysql}
     sed -i "s#^connection.*=.*#connection = mysql+pymysql://keystone:KEYSTONE_DBPASS@${MYSQL_HOST}/keystone?charset=utf8#" $CONFIG_FILE
+    # Before inserting the schema, testing MySQL availability
+    until mysql -uroot -p$MYSQL_ROOT_PASSWORD -h $MYSQL_HOST -e 'select 1'; do
+    	>&2 echo "MySQL is unavailable - sleeping"
+    	sleep 1
+    done
     mysql -uroot -p$MYSQL_ROOT_PASSWORD -h $MYSQL_HOST <$SQL_SCRIPT
 fi
 
-#rm -f $SQL_SCRIPT
+rm -f $SQL_SCRIPT
 
 # update keystone.conf
 sed -i "s#^admin_token.*=.*#admin_token = $ADMIN_TOKEN#" $CONFIG_FILE
@@ -32,11 +37,6 @@ keystone-manage db_sync
 # Initialize Fernet keys
 keystone-manage fernet_setup --keystone-user root --keystone-group root
 mv /etc/keystone/default_catalog.templates /etc/keystone/default_catalog
-
-# start keystone service 
-#uwsgi --http 0.0.0.0:35357 --wsgi-file $(which keystone-wsgi-admin) &
-#uwsgi --http 0.0.0.0:5000 --wsgi-file $(which keystone-wsgi-public) &
-#sleep 5 # wait for start
 
 export OS_TOKEN OS_URL OS_IDENTITY_API_VERSION
 
