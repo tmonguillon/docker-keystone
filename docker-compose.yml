@@ -19,8 +19,14 @@ services:
       - "35357:35357"
       - "5000:5000"
     restart: always
+    volumes:
+      - 'shared:/opt/shared'
     environment:
       MYSQL_ROOT_PASSWORD: MYSQL_DBPASS
       OS_TENANT_NAME: admin
       OS_USERNAME: admin
       OS_PASSWORD: password
+
+volumes:
+  shared:
+    driver: local 

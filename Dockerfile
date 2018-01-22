@@ -19,14 +19,14 @@ RUN apk add --no-cache \
 
 # Install build-deps, pip install packages and clean deps (to keep image small)
 RUN apk add --no-cache --virtual build-deps \
-    git \
-    gcc \
-    linux-headers \
-    libc-dev \
-    python-dev \
-    openssl-dev \
-    libffi-dev \
-    mariadb-dev \
+        git \
+        gcc \
+        linux-headers \
+        libc-dev \
+        python-dev \
+        openssl-dev \
+        libffi-dev \
+        mariadb-dev \
     && pip install uwsgi MySQL-python pymysql pymysql_sa \
     && git clone --branch $KEYSTONE_BRANCH --depth=1 https://github.com/openstack/requirements \
     && git clone --branch $KEYSTONE_BRANCH --depth=1 https://github.com/openstack/keystone \
@@ -35,8 +35,9 @@ RUN apk add --no-cache --virtual build-deps \
     && pip install /opt/python-openstackclient -r /opt/python-openstackclient/requirements.txt -r /opt/requirements/requirements.txt \
     && cp -r /opt/keystone/etc /etc/keystone \
     && rm -rf /root/.cache \
-    && rm -rf /opt/* 
-#    && apk del build-deps
+    && rm -rf /opt/* \
+    && rm -rf /var/cache/apk/* \
+    && apk del build-deps
 
 
 COPY keystone.conf /etc/keystone/keystone.conf
